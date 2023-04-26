@@ -1,0 +1,24 @@
+void sortQuickly(vector<pair<float, int>> &hectorTheVector, int left, int right) {
+    if (left >= right) {
+        return;
+    }
+    int pivot = hectorTheVector[left].first;
+    int i = left + 1;
+    int j = right;
+    while (i <= j) {
+        while (i <= j && hectorTheVector[i].first < pivot) {
+            i++;
+        }
+        while (i <= j && hectorTheVector[j].first > pivot) {
+            j--;
+        }
+        if (i <= j) {
+            swap(hectorTheVector[i], hectorTheVector[j]);
+            i++;
+            j--;
+        }
+    }
+    swap(hectorTheVector[left], hectorTheVector[j]);
+    sortQuickly(hectorTheVector, left, j - 1);
+    sortQuickly(hectorTheVector, j + 1, right);
+}
