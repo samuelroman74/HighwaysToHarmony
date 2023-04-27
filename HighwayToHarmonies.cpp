@@ -16,7 +16,7 @@ void sortQuickly(vector<pair<float, int>> &hectorTheVector, int left, int right)
     if (left >= right) {
         return;
     }
-    int pivot = hectorTheVector[left].first;
+    float pivot = hectorTheVector[left].first;
     int i = left + 1;
     int j = right;
     while (i <= j) {
@@ -77,7 +77,7 @@ vector<string> row;
 ifstream myData ("MusicData.csv");
 string line, word;
 
-vector<int> thisSong;
+
 while(getline(myData, line)) {
     row.clear();
     stringstream str(line);
@@ -87,20 +87,34 @@ while(getline(myData, line)) {
 }
 //Gets input for genre choice and the overall data
 
-string name;
-int matchingTitles = 0;
-int songIndex = 0;
 
+
+int songIndex = 0;
+int keepGoing = 0;
+int priority = 0;
+
+while (keepGoing == 0){
+int matchingTitles = 0;
+vector<int> thisSong;
 while(matchingTitles == 0){
-cout << "Input the title of a song you like:\n";
+keepGoing = 1;
+cout << "Input the title of a song you like from ANY genre:\n";
+string name;
 getline(cin, name);
 //Allows user to pick choice
 
 for(int i = 0; i < content.size(); i++){
+    
+    //std::transform(content[i][titleIndex].begin(), content[i][titleIndex].end(), content[i][titleIndex].begin(), ::tolower);
+    // Convert complete given Sub String to lower case
+    //std::transform(name.begin(), name.end(), name.begin(), ::tolower);
+    
     if(stricmp(content[i][titleIndex].c_str(), name.c_str()) == 0){
+    //if(content[i][titleIndex].find(name) != string::npos){
     thisSong.push_back(i);
     matchingTitles++;
     }
+    //}
     //Counts how many titles there are
 }
 
@@ -115,22 +129,28 @@ else if(matchingTitles > 1) {
         cout << j << ": \"" << content[iter][titleIndex] << "\" by " << content[iter][artIndex] << " in " << content[iter][yearIndex] << "\n";
         j++;
     } 
+    cout << j << ". None of the above\n";
     string choice;
     getline(cin, choice);
+    if(stoi(choice) != j)
     songIndex = thisSong[stoi(choice) - 1];
+    else {
+        cout << "Sorry to hear that! The song is either not in our database or requires you to be more specific. \nLet's try this again. ";
+        keepGoing = 0;
+    }
     //This can definitely be optimized (just get rid of the iter)!
 }
 else 
     songIndex = thisSong[0];
 }
 
+if(keepGoing != 0) {
 
-
-cout << "Ooh, yes! I love that one. Last thing: What's most important to you about this song?\n";
-cout << "1. Positivity\n2. Era\n3. Danceability\n4. Energy\n5. Tempo\n"; 
+cout << "Ooh, yes! " << content[songIndex][titleIndex] << " by " << content[songIndex][artIndex] << "? I love that one. \nLast thing: What's most important to you about this song?\n";
+cout << "1. Positivity\n2. Era\n3. Danceability\n4. Energy\n5. Tempo\n6. That's not the song I wanted.\n"; 
 string priorityInput;
 getline(cin, priorityInput);
-int priority = stoi(priorityInput);
+priority = stoi(priorityInput);
     switch(priority) {
         case 1:
         priority = valenceIndex;
@@ -147,9 +167,15 @@ int priority = stoi(priorityInput);
         case 5:
         priority = tempoIndex;
         break;
+        case 6:
+        cout << "Oh, my bad! Let's try it again. ";
+        keepGoing = 0;
+        break;
     }
+}
     //Gets input for whatever they want to focus on.
     //can probably do something here with indices array
+}
 
 int leftOver[4];
 int j = 0;
@@ -199,13 +225,8 @@ for(int i = 1; i < content.size(); i++) {
     int breakOut = 0;
     int i = 0;
     vector<int> relevantSongs;
-    cout << songs[1].first << " " << songs[1].second << "\n";
-    cout << songs[5000].first << " " << songs[2].second << "\n";
-    //sort(songs.begin(), songs.end());
-    sortQuickly(songs, 0, songs.size() - 1);
-
-    cout << songs[1].first << " " << songs[1].second << "\n";
-    cout << songs[5000].first << " " << songs[2].second << "\n";
+    sort(songs.begin(), songs.end());
+    //sortQuickly(songs, 0, songs.size() - 1);
 
     int findIndex = 0;
 
@@ -299,9 +320,11 @@ for(int i = 1; i < content.size(); i++) {
     
   }
 
-
+cout << "This is what we found! Hope you enjoy rocking out to these tunes.\n";
+ i = 1;
 for(auto iter: relevantSongs){
-    cout << content[iter][titleIndex] << " by " << content[iter][artIndex] << " in " << content[iter][yearIndex] << "\n";
+    cout << i << ". " << content[iter][titleIndex] << " by " << content[iter][artIndex] << " in " << content[iter][yearIndex] << "\n";
+    i++;
 }
 //Prints out the songs it found
 
