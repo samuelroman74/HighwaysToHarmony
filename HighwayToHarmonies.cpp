@@ -6,11 +6,11 @@
 #include <map>
 #include <stdio.h>
 #include <string.h>
-#include <unordered_map>
 #include <algorithm>
+#include <chrono>
 
 using namespace std;
-
+using namespace std::chrono;
 
 void sortQuickly(vector<pair<float, int>> &hectorTheVector, int left, int right) {
     if (left >= right) {
@@ -42,7 +42,9 @@ void sortQuickly(vector<pair<float, int>> &hectorTheVector, int left, int right)
 
 
 int main() {
+int finalBreakout = 1;
 
+while(finalBreakout == 1) {
 string genres [] = {"pop", "rap", "jazz", "hip hop", "country", "edm", "indie", "alternative", "rock"};
 //Adding genres here might make this work better actually
 int genreCount = 9;
@@ -74,7 +76,7 @@ int genreChoice = stoi(run) - 1;
 vector<vector<string>> content;
 vector<string> row;
 
-ifstream myData ("MusicData.csv");
+ifstream myData ("HighwayData.csv");
 string line, word;
 
 
@@ -105,16 +107,14 @@ getline(cin, name);
 
 for(int i = 0; i < content.size(); i++){
     
-    //std::transform(content[i][titleIndex].begin(), content[i][titleIndex].end(), content[i][titleIndex].begin(), ::tolower);
+    std::transform(content[i][titleIndex].begin(), content[i][titleIndex].end(), content[i][titleIndex].begin(), ::tolower);
     // Convert complete given Sub String to lower case
-    //std::transform(name.begin(), name.end(), name.begin(), ::tolower);
-    
-    if(stricmp(content[i][titleIndex].c_str(), name.c_str()) == 0){
-    //if(content[i][titleIndex].find(name) != string::npos){
+    std::transform(name.begin(), name.end(), name.begin(), ::tolower);
+    if(content[i][titleIndex] == name){
     thisSong.push_back(i);
     matchingTitles++;
     }
-    //}
+    
     //Counts how many titles there are
 }
 
@@ -138,15 +138,16 @@ else if(matchingTitles > 1) {
         cout << "Sorry to hear that! The song is either not in our database or requires you to be more specific. \nLet's try this again. ";
         keepGoing = 0;
     }
-    //This can definitely be optimized (just get rid of the iter)!
 }
 else 
     songIndex = thisSong[0];
 }
+//Finds matching titles
+
 
 if(keepGoing != 0) {
 
-cout << "Ooh, yes! " << content[songIndex][titleIndex] << " by " << content[songIndex][artIndex] << "? I love that one. \nLast thing: What's most important to you about this song?\n";
+cout << "Ooh, yes! \"" << content[songIndex][titleIndex] << "\" by " << content[songIndex][artIndex] << "? I love that one. \nLast thing: What's most important to you about this song?\n";
 cout << "1. Positivity\n2. Era\n3. Danceability\n4. Energy\n5. Tempo\n6. That's not the song I wanted.\n"; 
 string priorityInput;
 getline(cin, priorityInput);
@@ -203,7 +204,7 @@ for(int i = 1; i < content.size(); i++) {
     }
     value1 = value1/4.0;
     value2 = value2/5.0;
-    value3 = (stof(content[i][priority]) + value1 + value2)/3.0; 
+    value3 = (stof(content[i][priority]) * 3 + value1 + value2)/3.0; 
     songs.push_back(make_pair(value3, i));
     //Gets the average of the value of the thing they want, the average of the other important stuff, and the average of everything else
 }
@@ -219,25 +220,38 @@ for(int i = 1; i < content.size(); i++) {
     }
     value1 = value1/4.0;
     value2 = value2/5.0;
-    songValue = (stof(content[songIndex][priority]) + value1 + value2)/3.0; 
+    songValue = (stof(content[songIndex][priority]) * 3 + value1 + value2)/3.0; 
         //Does that one more time for the song they chose
 
     int breakOut = 0;
     int i = 0;
     vector<int> relevantSongs;
+    vector<pair<float, int>> songsCopy = songs;
+
+
+    auto start = high_resolution_clock::now();
     sort(songs.begin(), songs.end());
-    //sortQuickly(songs, 0, songs.size() - 1);
+    auto stop = high_resolution_clock::now();
+    auto duration = duration_cast<microseconds>(stop - start);
+    auto begin = high_resolution_clock::now();
+    sortQuickly(songsCopy, 0, songsCopy.size() - 1);
+    auto end = high_resolution_clock::now();
+    auto difference = duration_cast<microseconds>(end - begin);
+    cout << "For implemented quicksort, this process took " << difference.count() << " microseconds.\n";
+    cout << "For built-in sort, this process took " << duration.count() << " microseconds.\n";
+    //calculates time for both sorts
 
     int findIndex = 0;
 
     for(int i = 0; i < songs.size(); i++){
         if(songs[i].first == songValue) {
             findIndex = i;
-            cout << "Succesful! " << i << songs[i].second << "\n";
+            cout << "Successful! " << "\n";
             break; 
         }
     }
 
+    
 
  while(breakOut != 1) {
     int k = findIndex;
@@ -315,10 +329,100 @@ for(int i = 1; i < content.size(); i++) {
         if(l != 1){
         l--;
         }
-        //Makes the reverse iterator acutally go backwards (as long as it can)
+        //Makes it actually go backwards (as long as it can)
     }
     
   }
+
+breakOut = 0;
+vector<int> relevantSongs2;
+
+//The segment below is basically just to prove that both sorting algorithms work and result in same songs
+//START OF REPEATED SEGMENT
+while(breakOut != 1) {
+    int k = findIndex;
+    int l = findIndex;
+    for(k; k < songsCopy.size(); k++) {
+        int j = songsCopy[l].second;
+        int i = songsCopy[k].second;
+    //Sets up so we can iterate backwards AND forwards from the value we want
+        if(content[i][genreIndex].find(genres[genreChoice]) != string::npos && songsCopy[k].first != songValue){
+                vector<int> genreNum;
+                for(int ex = 0; ex < genreCount; ex++) {
+                    int found = 0;
+                    int sum = 0;
+                    while(content[i][genreIndex].find(genres[ex], found) != string::npos){
+                    sum++;
+                    found = content[i][genreIndex].find(genres[ex], found) + 1;
+                    }
+                    genreNum.push_back(sum);
+                }
+                //If the selected genre is part of the song, counts how many times EVERY genre shows up in genre descriptions
+                pair<int, int> max (0, 0);
+             for(int vecIt = 0; vecIt < genreNum.size(); vecIt++) {
+                if(genreNum[vecIt] > max.second) {
+                    max.first = vecIt;
+                    max.second = genreNum[vecIt];
+                     }
+                else if (genreNum[vecIt] == max.second && vecIt == genreChoice) {
+                    max.first = vecIt;
+                    max.second = genreNum[vecIt];
+                }
+                 }
+                //Checks whether another genre comes up more often than the selected one for the given song
+            if(max.first == genreChoice) {
+                //If the selected genre comes up the max amount of times, continues
+            relevantSongs2.push_back(i);
+            if(relevantSongs2.size() >= 10){
+                breakOut = 1;
+                break;
+            }
+              }
+        }
+    //Overall, essentially makes sure that it doesn't put a genre that really belonds to something else
+    //Below just does the same thing as it iterates backwards
+        if(content[j][genreIndex].find(genres[genreChoice]) != string::npos && songsCopy[l].first != songValue){
+                vector<int> genreNum;
+                for(int ex = 0; ex < genreCount; ex++) {
+                    int found = 0;
+                    int sum = 0;
+                    while(content[j][genreIndex].find(genres[ex], found) != string::npos){
+                    sum++;
+                    found = content[j][genreIndex].find(genres[ex], found) + 1;
+                    }
+                    genreNum.push_back(sum);
+                }
+                pair<int, int> max (0, 0);
+             for(int vecIt = 0; vecIt < genreNum.size(); vecIt++) {
+                if(genreNum[vecIt] > max.second) {
+                    max.first = vecIt;
+                    max.second = genreNum[vecIt];
+                    }
+                else if (genreNum[vecIt] == max.second && vecIt == genreChoice) {
+                    max.first = vecIt;
+                    max.second = genreNum[vecIt];
+                }
+                 }
+            if(max.first == genreChoice) {
+            relevantSongs2.push_back(j);
+            if(relevantSongs2.size() >= 10){
+                breakOut = 1;
+                break;
+            }
+              }
+        }
+
+        if(l != 1){
+        l--;
+        }
+        //Checks backwards (as long as it can)
+    }
+    
+  }
+  //END OF REPEATED SEGMENT
+
+
+
 
 cout << "This is what we found! Hope you enjoy rocking out to these tunes.\n";
  i = 1;
@@ -326,7 +430,20 @@ for(auto iter: relevantSongs){
     cout << i << ". " << content[iter][titleIndex] << " by " << content[iter][artIndex] << " in " << content[iter][yearIndex] << "\n";
     i++;
 }
-//Prints out the songs it found
+i = 1; 
 
+if(relevantSongs2 == relevantSongs){
+    cout << "Bonus: Both sorting algorithm outputs are the same! Aren't we cool?\n";
+}
+else {
+    cout << "Outputs weren't the same amongst sorting algorithms. Well. Nobody is perfect.";
+}
+//Prints out the songs it found
+cout << "But yeah, that was fun! Would you like to try another song?\n1. Yes!\n2. No.\n";
+string breakInput = "";
+getline(cin, breakInput);
+finalBreakout = stoi(breakInput);
+}
+cout << "Nice jammin' with ya!\n";
 
 }
